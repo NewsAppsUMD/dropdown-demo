@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maryland Presidential Election Results</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .selection-container {
+            margin-bottom: 20px;
+            width: 100%;
+            text-align: center;
+        }
+        select {
+            padding: 8px;
+            font-size: 16px;
+            border-radius: 4px;
+            width: 300px;
+        }
+        .chart-container {
+            width: 100%;
+            height: 400px;
+            margin-bottom: 30px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .vote-info {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 15px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            width: 100%;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Maryland Presidential Election Results 2024</h1>
+        
+        <div class="selection-container">
+            <label for="jurisdiction-select">Select Jurisdiction: </label>
+            <select id="jurisdiction-select">
+                <option value="">Select a jurisdiction</option>
+                <option value="statewide">Statewide Totals</option>
+                {% for jurisdiction in jurisdictions %}
+                <option value="{{ jurisdiction }}">{{ jurisdiction }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="chart-container">
+            <h3>Vote Totals</h3>
+            <canvas id="vote-chart"></canvas>
+        </div>
+        
+        <div class="chart-container">
+            <h3>Vote Percentages</h3>
+            <canvas id="percentage-chart"></canvas>
+        </div>
+
+        <div id="vote-info" class="vote-info" style="display: none;">
+            <h3 id="jurisdiction-title"></h3>
+            <p>Total votes: <span id="total-votes"></span></p>
+            <div id="percentage-table">
+                <h4>Candidate Percentages</h4>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Candidate</th>
+                            <th>Votes</th>
+                            <th>Percentage</th>
+                        </tr>
+                    </thead>
+                    <tbody id="percentage-data">
+                        <!-- Percentage data will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize the charts with empty data
+        const ctxVotes = document.getElementById('vote-chart').getContext('2d');
+        let voteChart = new Chart(ctxVotes, {
+            type: 'bar',
+            data: {
+                labels: ['Harris', 'Trump', 'Oliver', 'Stein', 'Kennedy', 'Others'],
+                datasets: [{
+                    label: 'Votes',
+                    data: [0, 0, 0, 0, 0, 0],
+                    backgroundColor: [
+                        'rgba(54, 162, 235, 0.7)',  // Blue for Harris (Democrat)
+                        'rgba(255, 99, 132, 0.7)',  // Red for Trump (Republican)
+                        'rgba(255, 206, 86, 0.7)',  // Yellow for Oliver
+                        'rgba(75, 192, 192, 0.7)',  // Green for Stein
+                        'rgba(153, 102, 255, 0.7)', // Purple for Kennedy
+                        'rgba(255, 159, 64, 0.7)'   // Orange for Others
+                    ],
+                    borderColor: [
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Number of Votes'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Candidate'
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                const votes = context.parsed.y;
+                                label += votes.toLocaleString();
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Initialize percentage chart
+        const ctxPercentages = document.getElementById('percentage-chart').getContext('2d');
+        let percentageChart = new Chart(ctxPercentages, {
+            type: 'bar',
+            data: {
+                labels: ['Harris', 'Trump', 'Oliver', 'Stein', 'Kennedy', 'Others'],
+                datasets: [{
+                    label: 'Percentage',
+                    data: [0, 0, 0, 0, 0, 0],
+                    backgroundColor: [
+                        'rgba(54, 162, 235, 0.7)',
+                        'rgba(255, 99, 132, 0.7)',
+                        'rgba(255, 206, 86, 0.7)',
+                        'rgba(75, 192, 192, 0.7)',
+                        'rgba(153, 102, 255, 0.7)',
+                        'rgba(255, 159, 64, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: 'Percentage of Votes (%)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Candidate'
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                const percentage = context.parsed.y;
+                                label += percentage.toFixed(2) + '%';
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Add event listener to the dropdown
+        document.getElementById('jurisdiction-select').addEventListener('change', function() {
+            const jurisdiction = this.value;
+            if (!jurisdiction) {
+                // Reset charts if no jurisdiction is selected
+                voteChart.data.datasets[0].data = [0, 0, 0, 0, 0, 0];
+                voteChart.update();
+                percentageChart.data.datasets[0].data = [0, 0, 0, 0, 0, 0];
+                percentageChart.update();
+                document.getElementById('vote-info').style.display = 'none';
+                return;
+            }
+
+            // Fetch data for the selected jurisdiction
+            let url = jurisdiction === 'statewide' ? '/data/statewide' : `/data/${jurisdiction}`;
+            
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    // Update votes chart with new data
+                    voteChart.data.datasets[0].data = [
+                        data.harris,
+                        data.trump,
+                        data.oliver,
+                        data.stein,
+                        data.kennedy,
+                        data.others
+                    ];
+                    voteChart.update();
+                    
+                    // Calculate percentages
+                    const total = data.total;
+                    const percentages = [
+                        (data.harris / total * 100),
+                        (data.trump / total * 100),
+                        (data.oliver / total * 100),
+                        (data.stein / total * 100),
+                        (data.kennedy / total * 100),
+                        (data.others / total * 100)
+                    ];
+                    
+                    // Update percentages chart
+                    percentageChart.data.datasets[0].data = percentages;
+                    percentageChart.update();
+
+                    // Update vote info
+                    document.getElementById('jurisdiction-title').textContent = jurisdiction === 'statewide' ? 
+                        'Statewide Totals' : `${jurisdiction} County`;
+                    document.getElementById('total-votes').textContent = data.total.toLocaleString();
+                    
+                    // Update percentage table
+                    const percentageData = document.getElementById('percentage-data');
+                    percentageData.innerHTML = '';
+                    
+                    const candidates = [
+                        { name: 'Harris', votes: data.harris, percentage: percentages[0] },
+                        { name: 'Trump', votes: data.trump, percentage: percentages[1] },
+                        { name: 'Oliver', votes: data.oliver, percentage: percentages[2] },
+                        { name: 'Stein', votes: data.stein, percentage: percentages[3] },
+                        { name: 'Kennedy', votes: data.kennedy, percentage: percentages[4] },
+                        { name: 'Others', votes: data.others, percentage: percentages[5] }
+                    ];
+                    
+                    // Sort candidates by vote count in descending order
+                    candidates.sort((a, b) => b.votes - a.votes);
+                    
+                    candidates.forEach(candidate => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${candidate.name}</td>
+                            <td>${candidate.votes.toLocaleString()}</td>
+                            <td>${candidate.percentage.toFixed(2)}%</td>
+                        `;
+                        percentageData.appendChild(row);
+                    });
+                    
+                    document.getElementById('vote-info').style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                });
+        });
+    </script>
+</body>
+</html>

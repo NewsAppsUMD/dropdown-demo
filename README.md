@@ -12,53 +12,34 @@ This is a simple Flask application that displays the 2024 presidential election 
 
 - Python 3.6 or higher
 - Flask
+- Peewee
+- SQLite Utils
 
 ## Setup Instructions
 
-1. First, clone or download this repository to your local machine.
+1. Open a new codespace from this repository.
 
-2. Create a virtual environment (recommended):
+2. Install the required packages:
    ```
-   python -m venv venv
-   ```
-
-3. Activate the virtual environment:
-   - On Windows:
-     ```
-     venv\Scripts\activate
-     ```
-   - On macOS/Linux:
-     ```
-     source venv/bin/activate
-     ```
-
-4. Install the required packages:
-   ```
-   pip install flask
+   pip install flask sqlite-utils peewee
    ```
 
-5. Make sure your project structure looks like this:
+3. Setup the database:
    ```
-   project-folder/
-   ├── app.py
-   ├── md_pres_county.csv
-   ├── templates/
-   │   └── index.html
-   └── README.md
+   python init_db.py
    ```
-
-6. Create the `templates` directory if it doesn't exist:
-   ```
-   mkdir templates
-   ```
-
-7. Move the `index.html` file into the `templates` directory.
 
 ## Running the Application
 
 1. With your virtual environment activated, run the Flask application:
    ```
    python app.py
+   ```
+
+   to run the version backed by a database, do this:
+
+   ```
+   python app_db.py
    ```
 
 2. Open your web browser and navigate to:
@@ -68,15 +49,31 @@ This is a simple Flask application that displays the 2024 presidential election 
 
 3. Use the dropdown menu to select different jurisdictions and view their respective vote totals.
 
+## Database Structure
+
+The application uses a SQLite database with a single table `election_results` that has the following structure:
+
+- `jurisdiction` (TEXT): Primary key - The name of the county
+- `harris` (INTEGER): Vote count for Harris
+- `trump` (INTEGER): Vote count for Trump
+- `oliver` (INTEGER): Vote count for Oliver
+- `stein` (INTEGER): Vote count for Stein
+- `kennedy` (INTEGER): Vote count for Kennedy
+- `others` (INTEGER): Vote count for other candidates
+- `total` (INTEGER): Total votes cast in the jurisdiction
+
 ## Customization
 
 - You can modify the chart colors in the `index.html` file
-- Additional data or features can be added by extending the Flask routes in `app.py`
+- Add more complex SQL queries in the `app.py` file to extract additional insights
+- Extend the database model in `models.py` to add more functionality
 
 ## Dependencies
 
-- [Flask](https://flask.palletsprojects.com/) - Web framework
-- [Chart.js](https://www.chartjs.org/) - JavaScript charting library
+- [Flask](https://flask.palletsprojects.com/): Web framework
+- [Peewee](http://docs.peewee-orm.com/): Simple and small ORM
+- [sqlite-utils](https://sqlite-utils.datasette.io/): Utility for manipulating SQLite databases
+- [Chart.js](https://www.chartjs.org/): JavaScript charting library
 
 ## Data Source
 
