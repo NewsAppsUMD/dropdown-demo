@@ -78,3 +78,7 @@ The application uses a SQLite database with a single table `election_results` th
 ## Data Source
 
 The application uses the `md_pres_county.csv` file which contains 2024 presidential election results for Maryland counties.
+
+## Issues/Improvements
+
+Write a few paragraphs identifying any issues with the presentation of the data, including what is displayed and what is not but should be. What does this need to make it easier to understand or more obvious? What design changes would you make?
